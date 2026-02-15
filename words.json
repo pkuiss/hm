@@ -1,8 +1,8 @@
 {
   "hangmanWords": [
     {
-      "word": "mirage",
-      "hint": "false image"
+      "word": "Nymph",
+      "hint": "Mythical"
     },
     {
       "word": "cipher",
@@ -21,13 +21,13 @@
       "hint": "mental disorder"
     },
     {
-      "word": "flabbergasted",
-      "hint": "amazed"
+      "word": "Mnemonic",
+      "hint": "memory helper"
     }
   ],
   "scribbleWords": [
     {
-      "word": "juggling",
+      "word": "Cartwheeling",
       "hint": "1"
     },
     {
@@ -39,4 +39,5 @@
       "hint": "3"
     }
   ]
+
 }
