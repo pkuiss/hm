@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title> Hangman X Scribbl</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --pink:#ff85a2;
+  --softpink:#ffd6e0;
+  --blue:#a5d8ff;
+  --lav:#e5dbff;
+  --mint:#c3fae8;
+}
+
+*{box-sizing:border-box;font-family:'Comic Sans MS','Poppins',cursive;}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:linear-gradient(135deg,#ffe0f0,#e0f7ff);
+  display:flex;
+  justify-content:center;
+  padding:25px;
+}
+
+.container{
+  width:100%;
+  max-width:1350px;
+  background:white;
+  border-radius:35px;
+  padding:35px;
+  box-shadow:0 25px 60px rgba(255,105,180,0.2);
+  text-align:center;
+  position:relative;
+}
+
+h1{color:var(--pink);}
+
+.side-buttons{
+  position:absolute;
+  top:20px;
+  right:20px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.side-buttons button{
+  background:var(--lav);
+  border:none;
+  padding:10px 15px;
+  border-radius:15px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.scoreboard{
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  margin:15px 0;
+}
+
+.score{
+  padding:12px 25px;
+  border-radius:20px;
+  background:var(--softpink);
+  font-weight:bold;
+}
+
+.active{background:var(--blue);}
+
+.game-area{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.hangman-panel{
+  background:var(--mint);
+  border-radius:25px;
+  padding:20px;
+  flex:1;
+  min-width:280px;
+}
+
+.word {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap; /* Allow letters to wrap to next line */
+  max-width: 100%; /* Prevent overflow */
+}
+
+.letter {
+  width: 40px;
+  height: 50px;
+  border-bottom: 4px solid var(--pink);
+  font-size: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  word-break: break-word; /* Ensure letters don't overflow */
+}
+
+.keyboard{
+  margin:25px auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(60px,1fr));
+  gap:10px;
+  max-width:1000px;
+}
+
+.key{
+  padding:15px 0;
+  border:none;
+  border-radius:20px;
+  background:var(--pink);
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+/* NEXT WORD BUTTON */
+button#nextWordBtn{
+  margin-top:20px;
+  padding:12px 25px;
+  font-size:18px;
+  border:none;
+  border-radius:20px;
+  background:var(--pink);
+  color:white;
+  cursor:pointer;
+  font-weight:bold;
+  transition:0.3s;
+}
+button#nextWordBtn:hover{
+  background:#ff6f91;
+  transform:scale(1.05);
+}
+.key.used{background:#ddd;color:#888;}
+
+.message{margin-top:10px;font-size:20px;}
+
+.scribble-box{
+  margin-top:20px;
+  padding:20px;
+  background:var(--lav);
+  border-radius:25px;
+}
+
+canvas{
+  background:white;
+  border-radius:15px;
+  cursor:crosshair;
+}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.4);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  visibility:hidden;
+}
+
+.modal.show{visibility:visible;}
+
+.modal-content{
+  background:white;
+  padding:20px;
+  border-radius:20px;
+  width:380px;
+  max-height:80vh;
+  overflow:auto;
+}
+
+.modal-content input{
+  width:100%;
+  padding:7px;
+  margin:5px 0;
+  border-radius:10px;
+}
+
+.word-item{
+  background:var(--softpink);
+  margin:5px 0;
+  padding:6px 10px;
+  border-radius:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1> Hangman X Scribble</h1>
+
+<div class="side-buttons">
+  <button onclick="startGame()">🎀 Hangman</button>
+  <button onclick="startScribble()">✏ Scribble</button>
+  <button onclick="openWordManager()">📝 Word Manager</button>
+</div>
+
+<div class="scoreboard" id="scoreboard"></div>
+<div id="panels" class="game-area"></div>
+<div id="keyboard" class="keyboard"></div>
+<div id="message" class="message"></div>
+<div id="scribbleArea"></div>
+<button id="nextWordBtn" onclick="nextWord()">🔄 Next Word</button>
+
+<!-- WORD MANAGER -->
+<div class="modal" id="wordModal">
+  <div class="modal-content">
+    <h3>📝 Word Manager</h3>
+
+    <h4>🎀 Hangman Words</h4>
+    <input id="newHangWord" placeholder="Word">
+    <input id="newHangHint" placeholder="Hint">
+    <button onclick="addHangmanWord()">Add</button>
+    <div id="hangmanList"></div>
+
+    <hr>
+
+    <h4>✏ Scribble Words</h4>
+    <input id="newScribWord" placeholder="Word">
+    <input id="newScribHint" placeholder="Hint">
+    <button onclick="addScribbleWord()">Add</button>
+    <div id="scribbleList"></div>
+
+    <br>
+    <button onclick="closeWordManager()">Close</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+let teams=["Team A","Team B","Team C"];
+let scores=[0,0,0];
+let currentMode = "hangman";
+let hangmanWords=[];
+let scribbleWords=[];
+let activeTeams=[];
+let chosen="",chosenHint="",guessed=[];
+let turn=0,direction=1;
+let mistakes=[0,0,0];
+const maxMistakes=8;
+
+let timerInterval=null,timeLeft=30,scribbleAnswer="";
+
+const keyboard=document.getElementById("keyboard");
+const message=document.getElementById("message");
+const scribbleArea=document.getElementById("scribbleArea");
+const panels=document.getElementById("panels");
+
+/* ===== WORD STORAGE ===== */
+
+function loadWords(){
+  hangmanWords=JSON.parse(localStorage.getItem("hangmanWords")) || [
+    {word:"cat",hint:"cute animal"},
+    {word:"flower",hint:"pretty plant"}
+  ];
+  scribbleWords=JSON.parse(localStorage.getItem("scribbleWords")) || [
+    {word:"sun",hint:"yellow and hot"},
+    {word:"house",hint:"place to live"}
+  ];
+}
+
+function saveWords(){
+  localStorage.setItem("hangmanWords",JSON.stringify(hangmanWords));
+  localStorage.setItem("scribbleWords",JSON.stringify(scribbleWords));
+}
+
+/* ===== WORD MANAGER ===== */
+
+function openWordManager(){
+  document.getElementById("wordModal").classList.add("show");
+  renderWordLists();
+}
+
+function closeWordManager(){
+  document.getElementById("wordModal").classList.remove("show");
+}
+
+function renderWordLists(){
+  hangmanList.innerHTML="";
+  scribbleList.innerHTML="";
+
+  hangmanWords.forEach((w,i)=>{
+    hangmanList.innerHTML+=`
+      <div class="word-item">
+        ${w.word} (${w.hint})
+        <button onclick="deleteHang(${i})">❌</button>
+      </div>`;
+  });
+
+  scribbleWords.forEach((w,i)=>{
+    scribbleList.innerHTML+=`
+      <div class="word-item">
+        ${w.word} (${w.hint})
+        <button onclick="deleteScrib(${i})">❌</button>
+      </div>`;
+  });
+}
+
+function addHangmanWord(){
+  if(!newHangWord.value||!newHangHint.value)return;
+  hangmanWords.push({word:newHangWord.value.toLowerCase(),hint:newHangHint.value});
+  saveWords();renderWordLists();
+  newHangWord.value=newHangHint.value="";
+}
+
+function addScribbleWord(){
+  if(!newScribWord.value||!newScribHint.value)return;
+  scribbleWords.push({word:newScribWord.value.toLowerCase(),hint:newScribHint.value});
+  saveWords();renderWordLists();
+  newScribWord.value=newScribHint.value="";
+}
+
+function deleteHang(i){hangmanWords.splice(i,1);saveWords();renderWordLists();}
+function deleteScrib(i){scribbleWords.splice(i,1);saveWords();renderWordLists();}
+
+/* ===== SCOREBOARD ===== */
+
+function renderScoreboard(){
+  scoreboard.innerHTML="";
+  teams.forEach((t,i)=>{
+    scoreboard.innerHTML+=`<div class="score ${i===turn?"active":""}">${t}: ${scores[i]}</div>`;
+  });
+}
+
+/* ===== TURN ===== */
+
+function nextTurn(){
+  turn=(turn+direction+teams.length)%teams.length;
+  renderScoreboard();
+
+  const st=document.getElementById("scribbleTurn");
+  if(st) st.textContent=teams[turn];
+}
+function toggleDirection(){direction*=-1;}
+
+/* ===== RESET ===== */
+
+function clearUI(){
+  keyboard.innerHTML="";panels.innerHTML="";
+  scribbleArea.innerHTML="";message.textContent="";
+  clearInterval(timerInterval);
+}
+
+/* ===== HANGMAN ===== */
+function nextWord(){
+  clearInterval(timerInterval);
+
+  if(currentMode==="scribble"){
+    loadScribbleWord(true); // timer resets
+  }else{
+    loadHangmanWord();
+  }
+
+  renderScoreboard();
+}
+
+function loadHangmanWord(){
+  guessed=[];
+  mistakes=[0,0,0];
+  keyboard.innerHTML="";
+  panels.innerHTML="";
+  message.textContent="";
+
+  // All teams are active at start of new word
+  activeTeams = [...Array(teams.length).keys()]; // [0,1,2,...]
+
+  const obj = hangmanWords[Math.floor(Math.random()*hangmanWords.length)];
+  chosen = obj.word;
+  chosenHint = obj.hint;
+
+  message.textContent = `Turn: ${teams[turn]} | Hint: ${chosenHint}`;
+
+  // Create panels and draw gallows immediately
+  teams.forEach((t,i)=>{
+    panels.innerHTML += `
+      <div class="hangman-panel">
+        <h3>${t}</h3>
+        <canvas id="hang${i}" width="160" height="170"></canvas>
+        <div class="word" id="w${i}"></div>
+      </div>`;
+    setTimeout(() => drawGallows(i), 0);
+  });
+
+  renderWord();
+  renderKeyboard();
+  renderScoreboard();
+}
+function loadScribbleWord(resetTimer=false){
+  clearInterval(timerInterval);
+
+  const obj=scribbleWords[Math.floor(Math.random()*scribbleWords.length)];
+  scribbleAnswer=obj.word;
+
+  scribbleArea.innerHTML=`
+  <div class="scribble-box">
+    <h3>
+      🎨 Turn: <span id="scribbleTurn">${teams[turn]}</span>
+      &nbsp;|&nbsp;
+      ⏳ <span id="timer">30</span>
+    </h3>
+    <p>Hint: ${obj.hint}</p>
+
+    🎨 <input type="color" id="colorPicker">
+    🖊 <input type="range" id="sizePicker" min="2" max="20">
+    <button onclick="clearCanvas()">🧹</button><br><br>
+
+    <canvas id="draw" width="500" height="300"></canvas><br><br>
+
+    <input id="scribbleGuess">
+    <button onclick="checkScribble()">Guess</button>
+  </div>`;
+
+  setupCanvas();
+  startTimer();
+}
+
+function startGame(){
+  clearUI();
+  toggleDirection();
+  currentMode="hangman";
+  loadHangmanWord();
+  renderScoreboard();
+}
+
+function startScribble(){
+  clearUI();
+  toggleDirection();
+  currentMode="scribble";
+  loadScribbleWord(true);
+  renderScoreboard();
+}
+
+function renderWord(){
+  teams.forEach((_, i) => {
+    const d = document.getElementById("w" + i);
+    d.innerHTML = "";
+    for (let l of chosen) {
+      d.innerHTML += `
+        <div class="letter">
+          ${guessed.includes(l) ? l : ""}
+        </div>`;
+    }
+  });
+}
+function renderKeyboard(){
+  for(let c=97;c<=122;c++){
+    const l=String.fromCharCode(c);
+    keyboard.innerHTML+=`<button class="key" onclick="guessLetter('${l}',this)">${l}</button>`;
+  }
+}
+
+function guessLetter(l, btn){
+  if(btn.classList.contains("used") || !activeTeams.includes(turn)) return;
+  btn.classList.add("used");
+
+  if(chosen.includes(l)){
+    guessed.push(l);
+    renderWord();
+
+    // Check if word completed
+    if([...chosen].every(x=>guessed.includes(x))){
+      scores[turn]++;
+      message.textContent = `${teams[turn]} guessed correctly 🎉`;
+      // Next word starts, reset turn to first active team
+      nextWord();
+    } else {
+      // Same team's turn continues
+      message.textContent = `${teams[turn]} guessed right! Keep going!`;
+    }
+  } else {
+    // Wrong guess
+    mistakes[turn]++;
+    drawHangman(turn);
+
+    if(mistakes[turn]>=maxMistakes){
+      message.textContent = `${teams[turn]} is OUT 💀`;
+      // Remove team from active teams
+      activeTeams = activeTeams.filter(t=>t!==turn);
+    } else {
+      message.textContent = `${teams[turn]} guessed wrong ❌`;
+    }
+
+    // Move to next active team
+    if(activeTeams.length>0){
+      let idx = activeTeams.indexOf(turn);
+      let nextIdx = (idx+1)%activeTeams.length;
+      turn = activeTeams[nextIdx];
+      renderScoreboard();
+      message.textContent += ` | Turn: ${teams[turn]}`;
+    } else {
+      // No teams left, reveal answer
+      message.textContent += ` | No teams left! Word: ${chosen}`;
+    }
+  }
+}
+function drawGallows(i){
+  const c = document.getElementById("hang"+i).getContext("2d");
+  c.clearRect(0,0,160,170);
+  c.strokeStyle="#ff85a2";
+  c.lineWidth=3;
+
+  // ground
+  c.beginPath();
+  c.moveTo(10,160);
+  c.lineTo(150,160);
+  c.stroke();
+
+  // pole
+  c.beginPath();
+  c.moveTo(40,160);
+  c.lineTo(40,20);
+  c.stroke();
+
+  // top beam
+  c.beginPath();
+  c.moveTo(40,20);
+  c.lineTo(110,20);
+  c.lineTo(110,40); // rope
+  c.stroke();
+}
+function drawHangman(i){
+  const c = document.getElementById("hang"+i).getContext("2d");
+  c.strokeStyle="#ff85a2"; c.lineWidth=3;
+
+  // Head
+  if(mistakes[i]>=1){
+    c.beginPath();
+    c.arc(110,60,18,0,Math.PI*2);
+    c.stroke();
+  }
+  // Body
+  if(mistakes[i]>=2){
+    c.beginPath();
+    c.moveTo(110,78);
+    c.lineTo(110,115);
+    c.stroke();
+  }
+  // Left Arm
+  if(mistakes[i]>=3){
+    c.beginPath();
+    c.moveTo(110,90);
+    c.lineTo(90,105);
+    c.stroke();
+  }
+  // Right Arm
+  if(mistakes[i]>=4){
+    c.beginPath();
+    c.moveTo(110,90);
+    c.lineTo(130,105);
+    c.stroke();
+  }
+  // Left Leg
+  if(mistakes[i]>=5){
+    c.beginPath();
+    c.moveTo(110,115);
+    c.lineTo(95,140);
+    c.stroke();
+  }
+  // Right Leg
+  if(mistakes[i]>=6){
+    c.beginPath();
+    c.moveTo(110,115);
+    c.lineTo(125,140);
+    c.stroke();
+  }
+  // Extra decorations or accessories if needed
+  if(mistakes[i]>=7){ /* optional */ }
+  if(mistakes[i]>=8){ /* optional */ }
+}
+/* ===== SCRIBBLE ===== */
+
+
+
+function startTimer(){
+  clearInterval(timerInterval);
+  timeLeft=30;
+  timer.textContent=timeLeft;
+
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    timer.textContent=timeLeft;
+    if(timeLeft<=0){
+      clearInterval(timerInterval);
+      nextTurn();
+    }
+  },1000);
+}
+
+function checkScribble(){
+  if(scribbleGuess.value.toLowerCase()===scribbleAnswer){scores[turn]+=2;}
+  clearInterval(timerInterval);nextTurn();renderScoreboard();
+}
+
+let ctx,canvas,drawing=false;
+function setupCanvas(){
+  canvas=document.getElementById("draw");
+  ctx=canvas.getContext("2d");
+  canvas.onmousedown=()=>drawing=true;
+  canvas.onmouseup=()=>drawing=false;
+  canvas.onmousemove=e=>{
+    if(!drawing||timeLeft<=0)return;
+    ctx.fillStyle=colorPicker.value;
+    ctx.beginPath();
+    ctx.arc(e.offsetX,e.offsetY,sizePicker.value,0,Math.PI*2);
+    ctx.fill();
+  };
+}
+function clearCanvas(){ctx.clearRect(0,0,canvas.width,canvas.height);}
+
+/* ===== INIT ===== */
+loadWords();
+renderScoreboard();
+startGame();
+</script>
+
+</body>
+</html>
