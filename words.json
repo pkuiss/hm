@@ -1,0 +1,42 @@
+{
+  "hangmanWords": [
+    {
+      "word": "mirage",
+      "hint": "false image"
+    },
+    {
+      "word": "cipher",
+      "hint": "secret code"
+    }, 
+    {
+      "word": "preseverance",
+      "hint": "keep going"
+    },
+    {
+      "word": "astronomical",
+      "hint": "large"
+    },
+    {
+      "word": "schizophrenia",
+      "hint": "mental disorder"
+    },
+    {
+      "word": "flabbergasted",
+      "hint": "amazed"
+    }
+  ],
+  "scribbleWords": [
+    {
+      "word": "juggling",
+      "hint": "1"
+    },
+    {
+      "word": "dragon",
+      "hint": "2"
+    },
+    {
+      "word": "kaleidoscope",
+      "hint": "3"
+    }
+  ]
+}
