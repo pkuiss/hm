@@ -1,7 +1,7 @@
 {
   "hangmanWords": [
     {
-      "word": "Nymph",
+      "word": "nymph",
       "hint": "Mythical"
     },
     {
@@ -21,13 +21,13 @@
       "hint": "mental disorder"
     },
     {
-      "word": "Mnemonic",
+      "word": "mnemonic",
       "hint": "memory helper"
     }
   ],
   "scribbleWords": [
     {
-      "word": "Cartwheeling",
+      "word": "cartwheeling",
       "hint": "1"
     },
     {
@@ -41,3 +41,4 @@
   ]
 
 }
+
